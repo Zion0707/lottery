@@ -2,6 +2,77 @@
   padding:0;
   margin:0;
 }
+
+@media only screen and (max-width: 1080px), only screen and (max-device-width:1080px) {
+    html, body {
+        font-size:57.599999999999994px;
+    }
+}
+@media only screen and (max-width: 960px), only screen and (max-device-width:960px) {
+    html, body {
+        font-size:51.2px;
+    }
+}
+@media only screen and (max-width: 800px), only screen and (max-device-width:800px) {
+    html, body {
+        font-size:42.666666666666664px;
+    }
+}
+@media only screen and (max-width: 720px), only screen and (max-device-width:720px) {
+    html, body {
+        font-size:38.4px;
+    }
+}
+@media only screen and (max-width: 640px), only screen and (max-device-width:640px) {
+    html, body {
+        font-size:34.13333333333333px;
+    }
+}
+@media only screen and (max-width: 600px), only screen and (max-device-width:600px) {
+    html, body {
+        font-size:32px;
+    }
+}
+@media only screen and (max-width: 540px), only screen and (max-device-width:540px) {
+    html, body {
+        font-size:28.799999999999997px;
+    }
+}
+@media only screen and (max-width: 480px), only screen and (max-device-width:480px) {
+    html, body {
+        font-size:25.6px;
+    }
+}
+@media only screen and (max-width: 414px), only screen and (max-device-width:414px) {
+    html, body {
+        font-size:22.080000000000002px;
+    }
+}
+@media only screen and (max-width: 400px), only screen and (max-device-width:400px) {
+    html, body {
+        font-size:21.333333333333332px;
+    }
+}
+@media only screen and (max-width: 375px), only screen and (max-device-width:375px) {
+    html, body {
+        font-size:20px;
+    }
+}
+@media only screen and (max-width: 360px), only screen and (max-device-width:360px) {
+    html, body {
+        font-size:19.2px;
+    }
+}
+@media only screen and (max-width: 320px), only screen and (max-device-width:320px) {
+    html, body {
+        font-size:17.066666666666666px;
+    }
+}
+@media only screen and (max-width: 240px), only screen and (max-device-width:240px) {
+    html, body {
+        font-size:12.8px;
+    }
+}
 div{
   -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
