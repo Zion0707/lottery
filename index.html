@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"> 
+	<title>翻牌抽奖游戏</title>
+	<link rel="stylesheet" type="text/css" href="css/lottery.css">
+<script>
+//这里以750px的设计稿进行rem计算，基数是40px，那么假如100px/40px=2.5rem
+(function (doc, win) {
+	var docEl = doc.documentElement,
+	resizeEvt = 'orientationchange' in window ? 'orientationchange' : 'resize',
+	recalc = function () {
+	var clientWidth = docEl.clientWidth;
+	if (!clientWidth) return;
+		docEl.style.fontSize = 20 * (clientWidth / 375) + 'px';
+	};
+
+	if (!doc.addEventListener) return;
+	win.addEventListener(resizeEvt, recalc, false);
+	doc.addEventListener('DOMContentLoaded', recalc, false);
+})(document, window);
+</script>
+</head>
+<body>
+	
+	<div class="lottery-con" id="lottery">
+        <div class="lottery-header">
+        	翻牌抽奖游戏
+        </div><!--lottery-header 头部 -->
+
+        <div class="lottery-body clearfix">
+            <div class="lottery-tool">
+                <div class="lottery-thead">
+                    您可以翻牌{{ flopNum }}次
+                </div>
+                <div class="lottery-tbody">
+                    <div class="lottery-tb-inner" :class="flopDisable.shuffle">
+                        
+                        <!-- 纸牌列表 -->
+                        <ul class="lottery-tb-list">
+                            <li v-for="(el,index) in newPrizeList">
+                                <!-- 纸牌操作 -->
+                                <div class="lottery-playing-cards viewport-flip" :data-index="index">
+
+                                    <div class="lottery-flip-card lottery-positive flip">
+                                        <i :class="el.class" v-html="el.text"></i>
+                                        <span class="lottery-tit">{{ el.title }}</span>
+                                        <span class="lottery-see">{{ el.describe }}</span>
+                                    </div>
+                                    <div class="lottery-flip-card lottery-reverse flip out"></div>
+
+                                </div>
+                            </li>
+                        </ul>
+                        
+                        <!-- 翻牌按钮 -->
+                        <div class="lottery-tb-btn" id="flopBtn">{{ flopBtnText }}</div>
+
+                        <!--透明遮罩层用于遮挡操作-->
+                        <div class="lottery-mask" :style="{ 'display' : flopDisable.mask }"></div>
+                    </div>
+                </div>
+            </div><!--lottery-tool-->
+        </div><!--lottery-body 内容部分-->
+
+        <div class="lottery-msg">{{ lotteryMsg }}</div>
+    </div><!--lottery-->	
+
+<script src="js/zepto.min.js"></script>
+<script src="js/vue.min.2.x.js"></script>
+<script>
+    /**
+     * 如果是 Vue 1.x 版本只要修改
+     * html 中的 (el,index) 改成 el
+     * index 改成 $index
+    */ 
+	var vm = new Vue({
+        el:'#lottery',
+		data:{
+            lotteryMsg:'', //信息提示
+            //默认奖品列表
+            defaultPrizeList : [
+                //加息卷0.5% 2小时
+                {
+                    class : 'lottery-card-volume lottery-cv1',
+                    title : '0.5%加息券' ,
+                    text :'<em>0.5%</em>',
+                    describe : '可在加息券中查看'
+                },
+                //谢谢参与
+                {
+                    class : 'lottery-thank-you',
+                    title : '谢谢参与' ,
+                    text : '',
+                    describe : '感谢你的支持'
+                },
+                //加息卷1% 2小时
+                {
+                    class : 'lottery-card-volume lottery-cv1',
+                    title : '1.0%加息券' ,
+                    text :'<em>1.0%</em>',
+                    describe : '可在加息券中查看'
+                },
+                //88888体验金 2小时
+                {
+                    class : 'lottery-experience-gold',
+                    title : '88888体验金' ,
+                    text : '',
+                    describe : '可在体验金中查看'
+                },
+                //加息卷2% 2小时
+                {
+                    class : 'lottery-card-volume lottery-cv1',
+                    title : '2.0%加息券' ,
+                    text : '<em>2.0%</em>',
+                    describe : '可在加息券中查看'
+                },
+                //100万体验金 2小时
+                {
+                    class : 'lottery-experience-gold',
+                    title : '100万体验金' ,
+                    text : '',
+                    describe : '可在体验金中查看'
+                },
+                //加息卷5% 2小时
+                {
+                    class : 'lottery-card-volume lottery-cv1',
+                    title : '5.0%加息券' ,
+                    text : '<em>5.0%</em>',
+                    describe : '可在加息券中查看'
+                },
+                //8888体验金 2小时
+                {
+                    class : 'lottery-experience-gold',
+                    title : '8888体验金' ,
+                    text : '',
+                    describe : '可在体验金中查看'
+                }
+            ] ,
+            newPrizeList : [],//新的奖品数据
+            flopNum : 3 ,//剩余抽奖次数
+            flopDisable : {
+                shuffle : '', //洗牌
+                mask : '' //遮罩
+            } , //禁止操作纸牌及按钮开关
+            flopBtnText : '翻牌', //按钮状态
+            clickIndex : null //被点击的索引
+        },
+        created () {
+            var _self = this;
+
+            Vue.nextTick(function(){
+                _self.initEvent()
+            })
+        } ,
+        methods : {
+            initEvent (){
+                var _self = this;
+
+                //翻牌按钮，按下抬起效果
+                $('#flopBtn').on('touchstart',function(){
+                    $(this).addClass('lottery-tb-btn-d')
+                }).on('touchend',function(){
+                    $(this).removeClass('lottery-tb-btn-d')
+                })
+
+                /*
+                 * by zhangxinxu(.com) 2012-10-30
+                 * 让不支持CSS3 animation的浏览器向下兼容效果
+                */
+                var BROWSER = function() {
+                    var ua = navigator.userAgent.toLowerCase();
+
+                    var match = /(webkit)[ \/]([\w.]+)/.exec( ua ) ||
+                        /(opera)(?:.*version)?[ \/]([\w.]+)/.exec( ua ) ||
+                        /(msie) ([\w.]+)/.exec( ua ) ||
+                        !/compatible/.test( ua ) && /(mozilla)(?:.*? rv:([\w.]+))?/.exec( ua ) ||
+                        [];
+
+                    return { browser: match[1] || "", version: match[2] || "0" };
+                }();
+
+                if ((BROWSER.animate = (BROWSER.browser !== "mozilla" && BROWSER.browser !== "webkit"))) {
+                    // 不是目标浏览器，创建CSS向下兼容
+                    var oStyle = document.createElement("style"), cssText = ".out{display:none!important;}";
+                    oStyle.type = "text/css";
+                    if (BROWSER.browser === "msie") {
+                        oStyle.styleSheet.cssText = cssText;
+                    } else {
+                        oStyle.innerHTML = cssText;
+                    }   
+                    document.getElementsByTagName("head")[0].appendChild(oStyle);
+                }
+
+
+                /**
+                 * 数组对象的深拷贝
+                 * @param source 数组对象
+                 */
+                var objDeepCopy = function (source) {
+                    var sourceCopy = source instanceof Array ? [] : {};
+                    for (var item in source) {
+                        sourceCopy[item] = typeof source[item] === 'object' ? objDeepCopy(source[item]) : source[item];
+                    }
+                    return sourceCopy;
+                }
+
+                /**
+                * @调换数组对象位置
+                * @param defaultArr 默认原始数据
+                * @param clickArr 被点击的数据
+                * @param clickIndex 被点击的索引值
+                * @param field 根据指定字段名来查询
+                * 已知被点击的索引，求被点击的数组元素在默认数组的哪个位置，并进行调换，返回新的调换过位置的默认原始数据数组
+                */
+                var exchangeArrayObjects = function(defaultArr,clickArr,clickIndex,field){
+                    //打乱数组增加真实性
+                    var randomsort = function(a,b){return Math.random()>.5 ? -1 : 1;}
+                    defaultArr.sort(randomsort)
+                    //进行数据调换
+                    var defaultIndex = null; //未知默认的数组所在文本的值
+                    for( var i in defaultArr ){
+                        if ( defaultArr[i][field] == clickArr[clickIndex][field] ) {
+                            defaultIndex = i;
+                        }
+                    }
+                    defaultArr[clickIndex] = defaultArr.splice(defaultIndex,1,defaultArr[clickIndex])[0]
+                    return defaultArr
+                }
+
+                //刚开始使用默认礼品，返回的时候也是呈现默认礼品
+                _self.newPrizeList = objDeepCopy( _self.defaultPrizeList )
+
+                //纸牌正面效果
+                var filpPositive = function(){
+                    $('.lottery-reverse').addClass('out').removeClass('in');
+                    setTimeout(function() {
+                        $('.lottery-positive').addClass('in').removeClass('out');
+                    }, 225);
+                }
+
+                //纸牌反面效果
+                var filpReverse = function(callback){
+                    $('.lottery-positive').addClass('out').removeClass('in');
+                    var timer1 = setTimeout(function() {
+                        $('.lottery-reverse').addClass('in').removeClass('out');
+                        var timer2 = setTimeout(function(){
+                            callback && callback()
+                            clearTimeout(timer2)
+                        },200)
+                        clearTimeout(timer1)
+                    }, 225);
+                }
+
+
+                //点击单个纸牌的触发的事件
+                $('.lottery-tb-list').on('click','.viewport-flip',function(){
+                    var _that = $(this);
+                    //如果已经翻牌那么就不予许再次翻转
+                    if ( _that.find('.lottery-positive').hasClass('out') && !$('.lottery-reverse').hasClass('out') ) {
+                        _self.clickIndex = _that.attr('data-index')
+                        //按钮状态
+                        _self.flopBtnText = _self.flopNum >= 0 ? '返回' : '结束';
+                        //翻牌正面效果
+                        _that.find('.lottery-reverse').addClass('out').removeClass('in');
+                        var timer1 = setTimeout(function() {
+                            _that.find('.lottery-positive').addClass('in').removeClass('out');
+                            _self.flopNum -= 1; //减少一次抽奖 机会
+
+                            //弹出获奖结果提示框
+                            var timer2 = setTimeout(function(){
+                                alert( _self.newPrizeList[_self.clickIndex].title )
+                                clearTimeout(timer2)
+                            },500)
+
+                            clearTimeout(timer1)
+                        }, 225);
+                    }
+                })
+
+                //点击翻牌按钮触发的事件
+                $('#flopBtn').bind('click', function() {
+                    //如果已经抽奖翻了一张牌 并且 还有机会那么就可以进行再次洗牌翻牌操作
+                    if ( $('.lottery-reverse').hasClass('out') && _self.flopNum > 0 && _self.flopBtnText == '翻牌' ) {
+
+                        filpReverse(function(){
+                            //翻转洗牌效果
+                            _self.flopDisable = {
+                                shuffle : 'shuffle', 
+                                mask : 'block'
+                            } 
+                            //添加洗牌效果
+                            var timer1 = setTimeout(function(){
+
+                                //这里需要调用接口数据，来进行数据更改，只要后端一条结果就可以
+                                //do code... 这里是模拟数据
+                                var obj = {
+                                    class : 'lottery-thank-you',
+                                    title : '谢谢参与' ,
+                                    text : '',
+                                    describe : ''
+                                };
+                                for( var i = 0 , len = _self.newPrizeList.length ; i < len ; i++ ){
+                                    Vue.set(_self.newPrizeList[i],'class',obj.class)
+                                    Vue.set(_self.newPrizeList[i],'title',obj.title)
+                                    Vue.set(_self.newPrizeList[i],'text',obj.text)
+                                    Vue.set(_self.newPrizeList[i],'describe',obj.describe)
+                                }
+
+                                _self.flopBtnText = '返回'; //按钮状态改变 
+                                _self.flopDisable.shuffle = ''; //回牌
+                                //等牌重新回到自己的位置才能让用户进行操作
+                                var timer2 = setTimeout(function(){
+                                    _self.flopDisable.mask = ''; //去掉遮罩层
+                                    clearTimeout(timer2)
+                                },800);
+
+                                clearTimeout(timer1)
+                            },1200);
+                        });
+
+                    }else 
+                    if( $('.lottery-reverse').hasClass('out') && _self.flopBtnText == '返回' ){
+                        //重新显示默认奖品，并翻转
+                        var defaultArr = objDeepCopy( exchangeArrayObjects( _self.defaultPrizeList , _self.newPrizeList , _self.clickIndex , 'title' ) ) ;
+                        for( var i in defaultArr ){
+                            Vue.set(_self.newPrizeList[i],'class',defaultArr[i].class)
+                            Vue.set(_self.newPrizeList[i],'title',defaultArr[i].title)
+                            Vue.set(_self.newPrizeList[i],'text',defaultArr[i].text)
+                            Vue.set(_self.newPrizeList[i],'describe',defaultArr[i].describe)
+                        }
+                        _self.flopBtnText = '翻牌';
+                        filpPositive();
+                    }else{
+                        alert( _self.flopNum || !$('.lottery-reverse').hasClass('out') ? '您还没有进行翻牌哦!' : '您没有更多的抽奖机会了，快去赚取吧' );
+                    }
+                });
+
+
+
+            }
+        }
+	})
+</script>
+</body>
+</html>
