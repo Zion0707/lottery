@@ -186,7 +186,7 @@ div{
   border-radius: 3px;
   position: absolute;
   overflow: hidden;
-  -webkit-transition-duration: 300ms;
+  -webkit-transition-duration: 200ms;
   z-index: 2;
   opacity: 1;
   -webkit-backface-visibility: hidden;
