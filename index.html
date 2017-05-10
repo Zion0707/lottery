@@ -165,10 +165,7 @@
                     $(this).removeClass('lottery-tb-btn-d')
                 })
 
-                /*
-                 * by zhangxinxu(.com) 2012-10-30
-                 * 让不支持CSS3 animation的浏览器向下兼容效果
-                */
+                //让不支持CSS3 animation的浏览器向下兼容效果
                 var BROWSER = function() {
                     var ua = navigator.userAgent.toLowerCase();
 
@@ -262,6 +259,22 @@
                         _self.clickIndex = _that.attr('data-index')
                         //按钮状态
                         _self.flopBtnText = _self.flopNum >= 0 ? '返回' : '结束';
+
+                        //这里需要调用接口数据，来进行数据更改，只要后端一条结果就可以
+                        //do code... 这里是模拟数据
+                        var obj = {
+                            class : 'lottery-thank-you',
+                            title : '谢谢参与' ,
+                            text : '',
+                            describe : ''
+                        };
+                        for( var i = 0 , len = _self.newPrizeList.length ; i < len ; i++ ){
+                            Vue.set(_self.newPrizeList[i],'class',obj.class)
+                            Vue.set(_self.newPrizeList[i],'title',obj.title)
+                            Vue.set(_self.newPrizeList[i],'text',obj.text)
+                            Vue.set(_self.newPrizeList[i],'describe',obj.describe)
+                        }
+
                         //翻牌正面效果
                         _that.find('.lottery-reverse').addClass('out').removeClass('in');
                         var timer1 = setTimeout(function() {
@@ -292,32 +305,15 @@
                             } 
                             //添加洗牌效果
                             var timer1 = setTimeout(function(){
-
-                                //这里需要调用接口数据，来进行数据更改，只要后端一条结果就可以
-                                //do code... 这里是模拟数据
-                                var obj = {
-                                    class : 'lottery-thank-you',
-                                    title : '谢谢参与' ,
-                                    text : '',
-                                    describe : ''
-                                };
-                                for( var i = 0 , len = _self.newPrizeList.length ; i < len ; i++ ){
-                                    Vue.set(_self.newPrizeList[i],'class',obj.class)
-                                    Vue.set(_self.newPrizeList[i],'title',obj.title)
-                                    Vue.set(_self.newPrizeList[i],'text',obj.text)
-                                    Vue.set(_self.newPrizeList[i],'describe',obj.describe)
-                                }
-
                                 _self.flopBtnText = '返回'; //按钮状态改变 
                                 _self.flopDisable.shuffle = ''; //回牌
                                 //等牌重新回到自己的位置才能让用户进行操作
                                 var timer2 = setTimeout(function(){
                                     _self.flopDisable.mask = ''; //去掉遮罩层
                                     clearTimeout(timer2)
-                                },800);
-
+                                },650);
                                 clearTimeout(timer1)
-                            },1200);
+                            },1100);
                         });
 
                     }else 
